@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel='stylesheet' href="http://cdncatalog.com/assets/flat-ui/css/bootstrap.css"></link>
+    <link rel='stylesheet' href="http://cdncatalog.com/assets/flat-ui/css/flat-ui.css"></link>
+    <style>
+        body {
+            margin: 0;
+        }
+        #codepad {
+            float: left;
+            margin-bottom: 1%;
+            position: absolute;
+        }
+        #result {
+            position: absolute;
+            top: 60%;
+        }
+        #compile {
+            position: absolute;
+            top: 90%;
+        }
+        #language {
+            position: absolute;
+            top: 70%;
+            left: 70%;
+        }
+        .textarea {
+            width: 50%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="codepad" class="textarea"></div>
+    <textarea id="result" class="textarea"></textarea>
+    <select id="language">
+        <option value="c">C</option>
+        <option value="java">Java</option>
+        <option value="js">Node.js</option>
+        <option value="py">Python</option>
+        <option value="rb">Ruby</option>
+    </select>
+    <button id="compile" class="btn btn-block btn-lg btn-primary">Compile</button>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.1/jquery.min.js" type="text/javascript"></script>
+    <script src="http://d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+    
+
+    <script>
+        var editor = ace.edit("codepad");
+        var val_to_mode = {
+            "c" : "ace/mode/c_cpp",
+            "java" : "ace/mode/java",
+            "js" : "ace/mode/javascript",
+            "py" : "ace/mode/python",
+            "ruby" : "ace/mode/ruby"
+        };
+
+        $(document).ready(function () {
+            var window_height = $(window).height();
+            $('#codepad').height(window_height * 0.55);
+            $('#result').height(window_height * 0.25);
+            editor.getSession().setUseWorker(false);
+            editor.setTheme("ace/theme/monokai");
+            editor.getSession().setMode("ace/mode/c_cpp");
+
+            $('#language').on(
+              'change',
+              function(event) {
+                currentMode = val_to_mode[$('#language').val()];
+                editor.getSession().setMode(currentMode);
+              }
+            );
+        });
+
+        $('#compile').click(function (e) {
+            e.preventDefault();
+            $.ajax("/", {
+                type: 'POST',
+                data: {
+                    code: editor.getSession().getValue(),
+                    language: $('#language').val()
+                },
+                success: function (data, textStatus, jqXHR) {
+                    $('#result').text(data);
+                },
+                error: function (data, textStatus, jqXHR) {
+                    $('#result').text('Failed to exec. Please try again.');
+                },
+                cache: false
+            });
+            e.stopPropagation();
+        });
+    </script>
+</body>
+</html>
